@@ -44,3 +44,7 @@ Deploy compiled scripts and DLL to a Skyrim `Data` folder:
 Treat `plugin/SaveReminderSSE.esp` as the canonical plugin. After saving changes in the CK:
 
 `powershell -ExecutionPolicy Bypass -File tools/build/sync-plugin-from-game.ps1`
+
+If you use a mod manager (e.g. MO2), xEdit may save to the mod manager's folder rather than the game Data folder. Pass `-SourcePath` to specify the ESP location directly:
+
+`powershell -ExecutionPolicy Bypass -File tools/build/sync-plugin-from-game.ps1 -SourcePath "path\to\SaveReminderSSE.esp"`
