@@ -1,6 +1,6 @@
 {
   "name": "saveremindersse",
-  "version-string": "0.1.3",
+  "version-string": "0.1.4",
   "dependencies": [
     "commonlibsse-ng-ae"
   ]

@@ -5,7 +5,7 @@ Import MCM
 SRSSE_ReminderController Property Controller Auto
 
 String _settingsModName = "SaveReminderSSE"
-String _version = "0.1.3"
+String _version = "0.1.4"
 
 int _oidEnabled = -1
 int _oidThreshold = -1

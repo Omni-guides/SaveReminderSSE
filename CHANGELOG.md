@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.1.4] - 2026-04-05
+- Corrected ESL flag in packaged release (0.1.3 archive contained unflagged ESP).
+
 ## [0.1.3] - 2026-04-05
 - ESL-flagged plugin (compacted FormIDs, light plugin flag set).
 - Version number now shown on the MCM Maintenance page.
