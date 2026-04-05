@@ -1,0 +1,47 @@
+# Local developer sync script.
+# Copy this file to sync-local.ps1 and set $ModPath to your local test mod folder.
+# sync-local.ps1 is gitignored and will not be committed.
+
+param(
+    [string]$ModPath = "C:\path\to\your\mod\folder",
+    [string]$Configuration = "Release"
+)
+
+$ErrorActionPreference = "Stop"
+
+$root = Split-Path -Parent $PSScriptRoot
+$projectRoot = Join-Path $root ".."
+$buildNativeScript = Join-Path $projectRoot "tools\build\build-native.ps1"
+$buildPapyrusScript = Join-Path $projectRoot "tools\build\build-papyrus.ps1"
+$espPath = Join-Path $projectRoot "plugin\SaveReminderSSE.esp"
+$pexDir = Join-Path $projectRoot "papyrus\compiled"
+$dllPath = Join-Path $projectRoot ("cpp\build\" + $Configuration + "\SaveReminderSSE.dll")
+$mcmSettingsSource = Join-Path $projectRoot "mcm\settings.ini"
+$mcmDefaultsSource = Join-Path $projectRoot "mcm\SaveReminderSSE_defaults.ini"
+
+if ($ModPath -eq "C:\path\to\your\mod\folder" -or -not (Test-Path $ModPath)) {
+    throw "Set ModPath to your local test mod folder. Current value: $ModPath"
+}
+
+Write-Host "Step 1/2: Building..."
+& $buildNativeScript -Configuration $Configuration
+& $buildPapyrusScript
+
+Write-Host "Step 2/2: Syncing to $ModPath..."
+$scriptDestDir = Join-Path $ModPath "Scripts"
+$dllDestDir = Join-Path $ModPath "SKSE\Plugins"
+$mcmDestDir = Join-Path $ModPath "MCM\Config\SaveReminderSSE"
+
+New-Item -ItemType Directory -Path $scriptDestDir -Force | Out-Null
+New-Item -ItemType Directory -Path $dllDestDir -Force | Out-Null
+New-Item -ItemType Directory -Path $mcmDestDir -Force | Out-Null
+
+Copy-Item -Path $espPath -Destination (Join-Path $ModPath "SaveReminderSSE.esp") -Force
+Copy-Item -Path $dllPath -Destination (Join-Path $dllDestDir "SaveReminderSSE.dll") -Force
+Copy-Item -Path (Join-Path $pexDir "SRSSE_Native.pex") -Destination (Join-Path $scriptDestDir "SRSSE_Native.pex") -Force
+Copy-Item -Path (Join-Path $pexDir "SRSSE_ReminderController.pex") -Destination (Join-Path $scriptDestDir "SRSSE_ReminderController.pex") -Force
+Copy-Item -Path (Join-Path $pexDir "SRSSE_MCM.pex") -Destination (Join-Path $scriptDestDir "SRSSE_MCM.pex") -Force
+Copy-Item -Path $mcmSettingsSource -Destination (Join-Path $mcmDestDir "settings.ini") -Force
+Copy-Item -Path $mcmDefaultsSource -Destination (Join-Path $mcmDestDir "SaveReminderSSE_defaults.ini") -Force
+
+Write-Host "Sync complete: $ModPath"

@@ -1,0 +1,60 @@
+# Project-level ignore rules only.
+# Keep machine-local editor/tooling entries in .git/info/exclude or your global gitignore.
+
+# Native build outputs
+/build/
+/bin/
+/obj/
+/out/
+/cpp/build/
+/cpp/out/
+/cpp/x64/
+/cpp/Release/
+/cpp/Debug/
+
+# Visual Studio / CMake
+.vs/
+.vscode/
+.idea/
+CMakeFiles/
+CMakeCache.txt
+cmake-build-*/
+compile_commands.json
+*.sln
+*.vcxproj*
+*.VC.db
+*.VC.opendb
+*.opensdf
+*.sdf
+*.ipch
+*.user
+*.userosscache
+*.rsuser
+
+# Native binaries and symbols
+*.dll
+*.pdb
+*.lib
+*.exp
+*.ilk
+
+# Papyrus generated artifacts
+*.pex
+*.psc.cache
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp
+*.bak
+*.orig
+
+# Build prerequisites (copy from local install via tools/setup.ps1)
+TESV_Papyrus_Flags.flg
+
+# Local developer convenience scripts (copy sync-local.ps1.example and configure)
+tools/build/sync-local.ps1
+
+# OS files
+.DS_Store
+Thumbs.db
