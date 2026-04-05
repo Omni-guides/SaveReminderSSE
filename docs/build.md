@@ -27,6 +27,7 @@ Requires:
 - Visual Studio 2022 C++ build tools
 - CMake
 - vcpkg (`VCPKG_ROOT` env var, or installed at `C:\dev\vcpkg`)
+- Skyrim SE + Creation Kit installed (required for Papyrus compiler)
 
 Default triplet: `x64-windows-static`. Override with `-Triplet x64-windows` if needed.
 

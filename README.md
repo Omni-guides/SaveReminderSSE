@@ -2,6 +2,8 @@
 
 A Skyrim SE mod that reminds the player to save after a set time since their last load or save.
 
+**Download:** https://www.nexusmods.com/skyrimspecialedition/mods/176475
+
 ## Dependencies
 - SKSE64
 - Address Library for SKSE Plugins
