@@ -34,7 +34,7 @@ if (-not $SkyrimPath) {
     $SkyrimPath = Resolve-FirstExistingPath -Candidates $skyrimCandidates -Description "Skyrim Special Edition install folder"
 }
 
-$flagsSource = Join-Path $SkyrimPath "Papyrus Compiler\TESV_Papyrus_Flags.flg"
+$flagsSource = Join-Path $SkyrimPath "Data\Source\Scripts\TESV_Papyrus_Flags.flg"
 
 if (-not (Test-Path $flagsSource)) {
     throw "TESV_Papyrus_Flags.flg not found at: $flagsSource`nPass -SkyrimPath to specify your Skyrim SE install folder."

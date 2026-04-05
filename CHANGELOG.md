@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.3] - 2026-04-05
+- ESL-flagged plugin (compacted FormIDs, light plugin flag set).
+- Version number now shown on the MCM Maintenance page.
+
 ## [0.1.2] - 2026-04-04
 Initial public release.
 - ESL-flagged plugin (compacted FormIDs for light module compatibility).

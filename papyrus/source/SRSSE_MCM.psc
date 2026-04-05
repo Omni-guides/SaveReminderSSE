@@ -5,6 +5,7 @@ Import MCM
 SRSSE_ReminderController Property Controller Auto
 
 String _settingsModName = "SaveReminderSSE"
+String _version = "0.1.3"
 
 int _oidEnabled = -1
 int _oidThreshold = -1
@@ -67,6 +68,7 @@ Event OnPageReset(String aPage)
     if (aPage == "Maintenance")
         AddHeaderOption("Settings")
         _oidResetDefaults = AddTextOption("Reset To Defaults", "")
+        AddTextOption("Version", _version, OPTION_FLAG_DISABLED)
     endif
 EndEvent
 
