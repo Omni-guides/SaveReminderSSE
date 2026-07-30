@@ -4,9 +4,15 @@ A Skyrim SE mod that reminds the player to save after a set time since their las
 
 **Download:** https://www.nexusmods.com/skyrimspecialedition/mods/176475
 
-This universal build targets Skyrim SE 1.5.97 and AE 1.6.x from one DLL. It uses alandtse CommonLibSSE-NG 5.4.2 pinned at commit `274b463677936660797b6ada518258fe5e235f3a`. VR support is intentionally disabled until it receives a dedicated compatibility test pass.
+The same DLL supports Skyrim SE 1.5.97 and AE 1.6.x. Skyrim VR is not supported.
 
-The universal source and native plugin are licensed under GPL-3.0-or-later; see `LICENSE`.
+## Features
+- Reminder intervals from 5 to 90 minutes
+- Optional timer pause while game menus are open
+- Optional reminder suppression during combat and NPC dialogue
+- Notification and pop-up display modes
+- MCM Helper settings persistence and modlist defaults
+- Optional diagnostic logging
 
 ## Dependencies
 - SKSE64
@@ -16,6 +22,8 @@ The universal source and native plugin are licensed under GPL-3.0-or-later; see 
 
 ## Build
 Run `tools/setup.ps1` once after cloning, then see `docs/build.md`.
+
+The native plugin uses CommonLibSSE-NG 5.4.2 pinned to commit `274b463677936660797b6ada518258fe5e235f3a`.
 
 ## Structure
 - `cpp/` — native SKSE plugin
@@ -27,3 +35,6 @@ Run `tools/setup.ps1` once after cloning, then see `docs/build.md`.
 
 ## Modlist authors
 Copy `mcm/SaveReminderSSE_defaults.ini` to `MCM/Settings/SaveReminderSSE.ini` in your own settings mod to ship custom defaults.
+
+## License
+GPL-3.0-or-later. See `LICENSE`.

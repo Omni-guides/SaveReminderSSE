@@ -1,7 +1,7 @@
 #include <SKSE/Impl/PCH.h>
 #include <SKSE/SKSE.h>
-#include <RE/M/MenuOpenCloseEvent.h>
 #include <RE/D/DialogueMenu.h>
+#include <RE/M/MenuOpenCloseEvent.h>
 #include <RE/N/NativeFunction.h>
 #include <RE/U/UI.h>
 #include <spdlog/sinks/basic_file_sink.h>

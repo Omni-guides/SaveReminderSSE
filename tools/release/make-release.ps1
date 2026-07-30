@@ -16,6 +16,7 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $projectRoot = Join-Path $root ".."
 $buildScript = Join-Path $projectRoot "tools\build\build-native.ps1"
+$papyrusBuildScript = Join-Path $projectRoot "tools\build\build-papyrus.ps1"
 $packageScript = Join-Path $projectRoot "tools\release\package.ps1"
 
 if (-not (Test-Path $buildScript)) {
@@ -26,7 +27,11 @@ if (-not (Test-Path $packageScript)) {
     throw "Package script not found: $packageScript"
 }
 
-Write-Host "Step 1/2: Building native plugin ($Configuration, $Triplet)..."
+if (-not (Test-Path $papyrusBuildScript)) {
+    throw "Papyrus build script not found: $papyrusBuildScript"
+}
+
+Write-Host "Step 1/3: Building native plugin ($Configuration, $Triplet)..."
 
 $buildArgs = @{
     Configuration = $Configuration
@@ -44,7 +49,19 @@ if ($LASTEXITCODE -ne 0) {
     throw "Native build failed."
 }
 
-Write-Host "Step 2/2: Creating release package and archive..."
+Write-Host "Step 2/3: Building Papyrus scripts..."
+
+$papyrusBuildArgs = @{}
+if ($GameDataPath) {
+    $papyrusBuildArgs.GameDataPath = $GameDataPath
+}
+
+& $papyrusBuildScript @papyrusBuildArgs
+if ($LASTEXITCODE -ne 0) {
+    throw "Papyrus build failed."
+}
+
+Write-Host "Step 3/3: Creating release package and archive..."
 
 $packageArgs = @{
     Version = $Version

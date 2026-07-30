@@ -14,6 +14,8 @@
    - `ThresholdMinutes = 15`
    - `PauseInMenus = true`
    - `PauseInCombat = true`
+   - `SuppressDuringDialogue = true`
+   - `DebugLogging = false`
    - `MessageStyle = 0` (Notification)
    - `PlayerRef = PlayerRef` (optional; script auto-fills if unset)
 
@@ -41,7 +43,9 @@
    - `Remind Every`
    - `Pause in Menus`
    - `Suppress During Combat`
+   - `Suppress During Dialogue`
    - `Use Pop-up Dialog`
+   - `Enable Debug Logging` on the Maintenance page
 3. Load an existing save and verify the timer begins from load time.
 4. Set `Remind Every` to 5 minutes and verify a reminder fires after 5 minutes.
 5. Save and verify the timer resets.

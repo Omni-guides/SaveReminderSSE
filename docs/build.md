@@ -11,6 +11,8 @@ Pass `-SkyrimPath` if your install is not in a standard Steam location.
 
 `powershell -ExecutionPolicy Bypass -File tools/release/make-release.ps1 -Configuration Release -Fresh`
 
+This builds the native plugin and Papyrus scripts before creating the archive.
+
 ## Local test sync
 
 1. Copy `tools/build/sync-local.ps1.example` to `tools/build/sync-local.ps1`

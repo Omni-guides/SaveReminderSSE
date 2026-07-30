@@ -8,7 +8,13 @@ supported by this release.
 
 License: GPL-3.0-or-later. See LICENSE.txt included with this package.
 
-Reminds you to save after a set amount of time since your last save. The timer resets whenever you load or save. MCM lets you adjust the interval, pause timing while in menus, suppress reminders during combat, and switch between a top-left notification or a pop-up dialog.
+Reminds you to save after a set amount of time since your last save. The timer
+resets whenever you load or save.
+
+The MCM lets you adjust the interval, pause the timer while menus are open,
+suppress reminders during combat or NPC dialogue, and choose between a
+top-left notification or a pop-up dialog. Optional diagnostic logging is on
+the Maintenance page.
 
 Requirements
 - SKSE64

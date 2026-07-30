@@ -66,7 +66,7 @@ Event OnUpdate()
             return
         endif
 
-        LogDebug("Timer raw=" + elapsedSeconds + "s, menuPaused=" + GetPausedSecondsForDisplay(elapsedSeconds) + "s")
+        LogDebug("Timer raw=" + elapsedSeconds + "s, menuPaused=" + GetPausedSecondsForDisplay() + "s")
         UpdateReminderTimer(elapsedSeconds)
     else
         LogDebug("No save has been seen this session; resetting reminder state")
@@ -80,7 +80,7 @@ Function UpdateReminderTimer(float elapsedSeconds)
         ResetReminderState()
     endif
 
-    float effectiveElapsedSeconds = elapsedSeconds - GetPausedSecondsForDisplay(elapsedSeconds)
+    float effectiveElapsedSeconds = elapsedSeconds - GetPausedSecondsForDisplay()
     if (effectiveElapsedSeconds < 0.0)
         effectiveElapsedSeconds = 0.0
     endif
@@ -118,7 +118,7 @@ float Function GetEffectiveElapsedSeconds()
         return 0.0
     endif
 
-    float effectiveElapsedSeconds = elapsedSeconds - GetPausedSecondsForDisplay(elapsedSeconds)
+    float effectiveElapsedSeconds = elapsedSeconds - GetPausedSecondsForDisplay()
     if (effectiveElapsedSeconds < 0.0)
         return 0.0
     endif
@@ -126,7 +126,7 @@ float Function GetEffectiveElapsedSeconds()
     return effectiveElapsedSeconds
 EndFunction
 
-float Function GetPausedSecondsForDisplay(float elapsedSeconds)
+float Function GetPausedSecondsForDisplay()
     if (PauseInMenus)
         return SRSSE_Native.GetMenuPausedSeconds()
     endif
