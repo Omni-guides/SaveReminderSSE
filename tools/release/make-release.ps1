@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "0.1.4",
+    [string]$Version = "0.2.2",
     [string]$Configuration = "Release",
     [string]$Triplet = "x64-windows-static",
     [switch]$Fresh,
@@ -7,7 +7,8 @@ param(
     [string]$EspSourcePath,
     [string]$DllSourcePath,
     [string]$PexSourceDir,
-    [switch]$NoArchive
+    [switch]$NoArchive,
+    [switch]$SkipVcpkgInstall
 )
 
 $ErrorActionPreference = "Stop"
@@ -33,6 +34,9 @@ $buildArgs = @{
 }
 if ($Fresh) {
     $buildArgs.Fresh = $true
+}
+if ($SkipVcpkgInstall) {
+    $buildArgs.SkipVcpkgInstall = $true
 }
 
 & $buildScript @buildArgs

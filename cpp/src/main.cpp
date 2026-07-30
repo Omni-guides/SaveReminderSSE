@@ -1,6 +1,7 @@
 #include <SKSE/Impl/PCH.h>
 #include <SKSE/SKSE.h>
 #include <RE/M/MenuOpenCloseEvent.h>
+#include <RE/D/DialogueMenu.h>
 #include <RE/N/NativeFunction.h>
 #include <RE/U/UI.h>
 #include <spdlog/sinks/basic_file_sink.h>
@@ -16,7 +17,6 @@ namespace
 {
     std::atomic<bool> g_seenSaveThisSession{ false };
     std::atomic<long long> g_lastSaveEpochMs{ 0 };
-    std::atomic<int> g_openMenuCount{ 0 };
     std::atomic<bool> g_menuPauseActive{ false };
     std::atomic<long long> g_menuPauseStartedEpochMs{ 0 };
     std::atomic<long long> g_accumulatedMenuPauseMs{ 0 };
@@ -26,45 +26,6 @@ namespace
         const auto now = std::chrono::system_clock::now();
         const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
         return ms.count();
-    }
-
-    float GetSecondsSinceLastSave(RE::StaticFunctionTag*)
-    {
-        if (!g_seenSaveThisSession.load()) {
-            return -1.0F;
-        }
-
-        const auto last = g_lastSaveEpochMs.load();
-        const auto now = GetEpochMsNow();
-
-        if (last <= 0) {
-            return 0.0F;
-        }
-
-        return static_cast<float>(now - last) / 1000.0F;
-    }
-
-    bool HasSeenSaveThisSession(RE::StaticFunctionTag*)
-    {
-        return g_seenSaveThisSession.load();
-    }
-
-    float GetMenuPausedSeconds(RE::StaticFunctionTag*)
-    {
-        long long pausedMs = g_accumulatedMenuPauseMs.load();
-
-        if (g_menuPauseActive.load()) {
-            const auto pauseStarted = g_menuPauseStartedEpochMs.load();
-            if (pauseStarted > 0) {
-                pausedMs += GetEpochMsNow() - pauseStarted;
-            }
-        }
-
-        if (pausedMs < 0) {
-            pausedMs = 0;
-        }
-
-        return static_cast<float>(pausedMs) / 1000.0F;
     }
 
     void BeginMenuPause()
@@ -94,11 +55,82 @@ namespace
         logger::info("Menu pause ended.");
     }
 
+    // Resyncs against the engine's own pause state instead of counting per-menu open/close
+    // events, so a missed or mismatched event (nested menus, HUD/Loading Menu churn on area
+    // transitions, third-party UI mods) can't leave the timer stuck paused.
+    void SyncMenuPauseState()
+    {
+        auto* ui = RE::UI::GetSingleton();
+        if (!ui) {
+            return;
+        }
+
+        if (ui->GameIsPaused()) {
+            BeginMenuPause();
+        } else {
+            EndMenuPause();
+        }
+    }
+
+    float GetSecondsSinceLastSave(RE::StaticFunctionTag*)
+    {
+        SyncMenuPauseState();
+
+        if (!g_seenSaveThisSession.load()) {
+            return -1.0F;
+        }
+
+        const auto last = g_lastSaveEpochMs.load();
+        const auto now = GetEpochMsNow();
+
+        if (last <= 0) {
+            return 0.0F;
+        }
+
+        return static_cast<float>(now - last) / 1000.0F;
+    }
+
+    bool HasSeenSaveThisSession(RE::StaticFunctionTag*)
+    {
+        return g_seenSaveThisSession.load();
+    }
+
+    bool IsDialogueMenuOpen(RE::StaticFunctionTag*)
+    {
+        auto* ui = RE::UI::GetSingleton();
+        return ui && ui->IsMenuOpen(RE::DialogueMenu::MENU_NAME);
+    }
+
+    float GetMenuPausedSeconds(RE::StaticFunctionTag*)
+    {
+        long long pausedMs = g_accumulatedMenuPauseMs.load();
+
+        if (g_menuPauseActive.load()) {
+            const auto pauseStarted = g_menuPauseStartedEpochMs.load();
+            if (pauseStarted > 0) {
+                pausedMs += GetEpochMsNow() - pauseStarted;
+            }
+        }
+
+        if (pausedMs < 0) {
+            pausedMs = 0;
+        }
+
+        return static_cast<float>(pausedMs) / 1000.0F;
+    }
+
+    void WriteDebugLog(RE::StaticFunctionTag*, std::string message)
+    {
+        logger::info("[Debug] {}", message);
+    }
+
     bool RegisterPapyrus(RE::BSScript::IVirtualMachine* vm)
     {
         vm->RegisterFunction("GetSecondsSinceLastSave", "SRSSE_Native", GetSecondsSinceLastSave);
         vm->RegisterFunction("HasSeenSaveThisSession", "SRSSE_Native", HasSeenSaveThisSession);
+        vm->RegisterFunction("IsDialogueMenuOpen", "SRSSE_Native", IsDialogueMenuOpen);
         vm->RegisterFunction("GetMenuPausedSeconds", "SRSSE_Native", GetMenuPausedSeconds);
+        vm->RegisterFunction("WriteDebugLog", "SRSSE_Native", WriteDebugLog);
         logger::info("Papyrus functions registered.");
         return true;
     }
@@ -135,32 +167,11 @@ namespace
     {
     public:
         RE::BSEventNotifyControl ProcessEvent(
-            const RE::MenuOpenCloseEvent* event,
+            const RE::MenuOpenCloseEvent*,
             RE::BSTEventSource<RE::MenuOpenCloseEvent>*)
             override
         {
-            if (!event) {
-                return RE::BSEventNotifyControl::kContinue;
-            }
-
-            if (event->opening) {
-                const auto previousCount = g_openMenuCount.fetch_add(1);
-                if (previousCount <= 0) {
-                    g_openMenuCount.store(1);
-                    BeginMenuPause();
-                }
-            } else {
-                int expectedCount = g_openMenuCount.load();
-                int nextCount = expectedCount;
-                do {
-                    nextCount = (expectedCount > 0) ? (expectedCount - 1) : 0;
-                } while (!g_openMenuCount.compare_exchange_weak(expectedCount, nextCount));
-
-                if (nextCount == 0) {
-                    EndMenuPause();
-                }
-            }
-
+            SyncMenuPauseState();
             return RE::BSEventNotifyControl::kContinue;
         }
     };
@@ -188,7 +199,7 @@ namespace
 }
 
 SKSEPluginInfo(
-    .Version = REL::Version{ 0, 1, 4, 0 },
+    .Version = REL::Version{ 0, 2, 2, 0 },
     .Name = "SaveReminderSSE"sv,
     .Author = "Omni"sv,
     .StructCompatibility = SKSE::StructCompatibility::Independent,

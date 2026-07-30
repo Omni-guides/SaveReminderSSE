@@ -4,7 +4,7 @@ if(POLICY CMP0091)
     cmake_policy(SET CMP0091 NEW)
 endif()
 
-project(SaveReminderSSE VERSION 0.1.4 LANGUAGES CXX)
+project(SaveReminderSSE VERSION 0.2.2 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -18,7 +18,23 @@ if(MSVC AND NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
     endif()
 endif()
 
-find_package(CommonLibSSE CONFIG REQUIRED)
+include(FetchContent)
+
+# alandtse's actively maintained CommonLibSSE-NG fork. Pin the exact revision so
+# release builds do not silently change when the upstream ng branch advances.
+set(ENABLE_SKYRIM_SE ON CACHE BOOL "Enable Skyrim SE support" FORCE)
+set(ENABLE_SKYRIM_AE ON CACHE BOOL "Enable Skyrim AE support" FORCE)
+set(ENABLE_SKYRIM_VR OFF CACHE BOOL "Enable Skyrim VR support" FORCE)
+set(BUILD_TESTS OFF CACHE BOOL "Build CommonLibSSE tests" FORCE)
+set(COMMONLIB_ENABLE_IPO OFF CACHE BOOL "Build CommonLibSSE without LTCG" FORCE)
+
+FetchContent_Declare(
+    CommonLibSSE
+    GIT_REPOSITORY https://github.com/alandtse/CommonLibSSE-NG.git
+    GIT_TAG 274b463677936660797b6ada518258fe5e235f3a
+    GIT_SHALLOW FALSE
+)
+FetchContent_MakeAvailable(CommonLibSSE)
 
 add_library(${PROJECT_NAME} SHARED
     src/main.cpp

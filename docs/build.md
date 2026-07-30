@@ -23,6 +23,15 @@ Pass `-SkyrimPath` if your install is not in a standard Steam location.
 
 `powershell -ExecutionPolicy Bypass -File tools/build/build-native.ps1 -Configuration Release -Fresh`
 
+Native builds use the vcpkg manifest in two explicit phases:
+
+1. `vcpkg install` resolves and installs dependencies from `cpp/vcpkg.json`.
+2. CMake configures with manifest mode enabled but automatic manifest install disabled, so dependency resolution does not run again during configure.
+
+After dependencies are already installed, use:
+
+`powershell -ExecutionPolicy Bypass -File tools/build/build-native.ps1 -Configuration Release -SkipVcpkgInstall`
+
 Requires:
 - Visual Studio 2022 C++ build tools
 - CMake

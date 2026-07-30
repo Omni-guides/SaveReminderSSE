@@ -2,7 +2,8 @@ param(
     [string]$Configuration = "Release",
     [string]$Generator = "Visual Studio 17 2022",
     [string]$Triplet = "x64-windows-static",
-    [switch]$Fresh
+    [switch]$Fresh,
+    [switch]$SkipVcpkgInstall
 )
 
 $ErrorActionPreference = "Stop"
@@ -52,6 +53,11 @@ if (-not (Test-Path $toolchain)) {
     throw "vcpkg toolchain not found at: $toolchain"
 }
 
+$vcpkgExe = Join-Path $env:VCPKG_ROOT "vcpkg.exe"
+if (-not (Test-Path $vcpkgExe)) {
+    throw "vcpkg.exe not found at: $vcpkgExe"
+}
+
 $root = Split-Path -Parent $PSScriptRoot
 $cppDir = Join-Path $root "..\cpp"
 $buildDir = Join-Path $cppDir "build"
@@ -64,6 +70,18 @@ if (-not (Test-Path $buildDir)) {
     New-Item -ItemType Directory -Path $buildDir | Out-Null
 }
 
+$installRoot = Join-Path $buildDir "vcpkg_installed"
+
+if (-not $SkipVcpkgInstall) {
+    Write-Host "Installing vcpkg manifest dependencies ($Triplet)..."
+    & $vcpkgExe install "--x-manifest-root=$cppDir" --triplet $Triplet "--x-install-root=$installRoot"
+    if ($LASTEXITCODE -ne 0) {
+        throw "vcpkg install failed."
+    }
+} elseif (-not (Test-Path $installRoot)) {
+    throw "vcpkg dependencies are not installed at: $installRoot`nRun without -SkipVcpkgInstall first."
+}
+
 $msvcRuntime = if ($Triplet -like "*-static*") {
     'MultiThreaded$<$<CONFIG:Debug>:Debug>'
 } else {
@@ -74,12 +92,17 @@ $configureArgs = @(
     "-S", $cppDir,
     "-B", $buildDir,
     "-G", $Generator,
-    "-DCMAKE_TOOLCHAIN_FILE=$toolchain",
     "-DCMAKE_MSVC_RUNTIME_LIBRARY=$msvcRuntime",
     "-DVCPKG_MANIFEST_MODE=ON",
     "-DVCPKG_MANIFEST_DIR=$cppDir",
+    "-DVCPKG_MANIFEST_INSTALL=OFF",
     "-DVCPKG_TARGET_TRIPLET=$Triplet"
 )
+
+$cachePath = Join-Path $buildDir "CMakeCache.txt"
+if (-not (Test-Path $cachePath)) {
+    $configureArgs += "-DCMAKE_TOOLCHAIN_FILE=$toolchain"
+}
 
 & $cmakeExe @configureArgs
 if ($LASTEXITCODE -ne 0) {

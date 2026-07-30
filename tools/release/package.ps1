@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "0.1.4",
+    [string]$Version = "0.2.2",
     [string]$GameDataPath,
     [string]$Configuration = "Release",
     [string]$EspSourcePath,
@@ -14,11 +14,12 @@ $root = Split-Path -Parent $PSScriptRoot
 $projectRoot = Join-Path $root ".."
 $workspaceRoot = Join-Path $projectRoot ".."
 $distRoot = Join-Path $workspaceRoot "dist"
-$packageName = "SaveReminderSSE_v" + $Version
+$packageName = "SaveReminderSSE_Universal_v" + $Version
 $packageRoot = Join-Path $distRoot $packageName
 $dataRoot = Join-Path $packageRoot "Data"
 $sevenZipPath = Join-Path $distRoot ($packageName + ".7z")
 $readmeSource = Join-Path $projectRoot "docs\\readme.txt"
+$licenseSource = Join-Path $projectRoot "LICENSE"
 $canonicalEspPath = Join-Path $projectRoot "plugin\\SaveReminderSSE.esp"
 $mcmSettingsSource = Join-Path $projectRoot "mcm\\settings.ini"
 $mcmDefaultsExampleSource = Join-Path $projectRoot "mcm\\SaveReminderSSE_defaults.ini"
@@ -50,7 +51,8 @@ $required = @(
     @{ Path = (Join-Path $PexSourceDir "SRSSE_MCM.pex"); Name = "SRSSE_MCM.pex" },
     @{ Path = $mcmSettingsSource; Name = "mcm\\settings.ini" },
     @{ Path = $mcmDefaultsExampleSource; Name = "mcm\\SaveReminderSSE_defaults.ini" },
-    @{ Path = $readmeSource; Name = "readme.txt" }
+    @{ Path = $readmeSource; Name = "readme.txt" },
+    @{ Path = $licenseSource; Name = "LICENSE" }
 )
 
 $missing = @($required | Where-Object { -not (Test-Path $_.Path) })
@@ -89,6 +91,7 @@ Copy-Item -Path (Join-Path $PexSourceDir "SRSSE_MCM.pex") -Destination (Join-Pat
 Copy-Item -Path $mcmSettingsSource -Destination (Join-Path $dataRoot "MCM\\Config\\SaveReminderSSE\\settings.ini") -Force
 Copy-Item -Path $mcmDefaultsExampleSource -Destination (Join-Path $dataRoot "MCM\\Config\\SaveReminderSSE\\SaveReminderSSE_defaults.ini") -Force
 Copy-Item -Path $readmeSource -Destination (Join-Path $packageRoot "README.txt") -Force
+Copy-Item -Path $licenseSource -Destination (Join-Path $packageRoot "LICENSE.txt") -Force
 
 if ($CreateArchive) {
     $sevenZipExe = Get-Command 7z -ErrorAction SilentlyContinue
@@ -111,9 +114,11 @@ if ($CreateArchive) {
         throw "7-Zip was not found. Install 7-Zip and ensure 7z.exe is in PATH."
     }
 
-    Push-Location $distRoot
+    # Archive the package contents, not the staging directory itself. MO2 expects
+    # Data at the archive root so it can recognize the mod's game-data layout.
+    Push-Location $packageRoot
     try {
-        & $sevenZipExe.Source a -t7z -mx=9 $sevenZipPath $packageName | Out-Host
+        & $sevenZipExe.Source a -t7z -mx=9 $sevenZipPath ".\*" | Out-Host
         if ($LASTEXITCODE -ne 0) {
             throw "7-Zip failed with exit code $LASTEXITCODE"
         }

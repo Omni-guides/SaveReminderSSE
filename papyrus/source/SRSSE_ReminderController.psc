@@ -6,6 +6,8 @@ bool Property ModEnabled = true Auto
 int Property ThresholdMinutes = 15 Auto
 bool Property PauseInMenus = true Auto
 bool Property PauseInCombat = true Auto
+bool Property SuppressDuringDialogue = true Auto
+bool Property DebugLogging = false Auto
 
 ; 0 = notification, 1 = message box
 int Property MessageStyle = 0 Auto
@@ -17,7 +19,9 @@ String _settingsModName = "SaveReminderSSE"
 int _lastAnnouncedMultiple = 0
 float _pollIntervalSeconds = 5.0
 float _lastObservedElapsedSeconds = -1.0
-bool _combatSuppressedActive = false
+bool _reminderSuppressedActive = false
+bool _dialogueSuppressedActive = false
+int _dialogueClearPolls = 0
 
 Event OnInit()
     if (PlayerRef == None)
@@ -41,9 +45,13 @@ Function StartPolling()
 EndFunction
 
 Event OnUpdate()
+    ; Arm the next poll first so a runtime error below cannot stop reminders forever.
+    StartPolling()
+    LogDebug("Poll started")
+
     if (!ModEnabled)
+        LogDebug("Reminders disabled; resetting reminder state")
         ResetReminderState()
-        StartPolling()
         return
     endif
 
@@ -54,20 +62,21 @@ Event OnUpdate()
     if (SRSSE_Native.HasSeenSaveThisSession())
         float elapsedSeconds = SRSSE_Native.GetSecondsSinceLastSave()
         if (elapsedSeconds < 0.0)
-            StartPolling()
+            LogDebug("Native timer returned no active save")
             return
         endif
 
+        LogDebug("Timer raw=" + elapsedSeconds + "s, menuPaused=" + GetPausedSecondsForDisplay(elapsedSeconds) + "s")
         UpdateReminderTimer(elapsedSeconds)
     else
+        LogDebug("No save has been seen this session; resetting reminder state")
         ResetReminderState()
     endif
-
-    StartPolling()
 EndEvent
 
 Function UpdateReminderTimer(float elapsedSeconds)
     if (_lastObservedElapsedSeconds >= 0.0 && elapsedSeconds < _lastObservedElapsedSeconds)
+        LogDebug("Timer moved backwards; treating this as a reset")
         ResetReminderState()
     endif
 
@@ -76,15 +85,19 @@ Function UpdateReminderTimer(float elapsedSeconds)
         effectiveElapsedSeconds = 0.0
     endif
 
-    if (ShouldSuppressForCombat())
-        _combatSuppressedActive = true
+    if (ShouldSuppressReminder())
+        LogDebug("Reminder display suppressed; leaving overdue interval pending")
+        _reminderSuppressedActive = true
         _lastObservedElapsedSeconds = elapsedSeconds
         return
     endif
 
-    if (_combatSuppressedActive)
-        HandleCombatReleaseReminder(effectiveElapsedSeconds, ThresholdMinutes)
-        _combatSuppressedActive = false
+    if (_reminderSuppressedActive)
+        LogDebug("Suppression ended; checking for an overdue reminder")
+        HandleSuppressionReleaseReminder(effectiveElapsedSeconds, ThresholdMinutes)
+        _reminderSuppressedActive = false
+        _lastObservedElapsedSeconds = elapsedSeconds
+        return
     endif
 
     HandleReminderInterval(effectiveElapsedSeconds, ThresholdMinutes)
@@ -123,6 +136,7 @@ EndFunction
 
 Function HandleReminderInterval(float elapsedSeconds, int thresholdMinutes)
     int currentMultiple = Math.Floor(elapsedSeconds / (thresholdMinutes * 60.0))
+    LogDebug("Interval check effective=" + elapsedSeconds + "s, multiple=" + currentMultiple + ", lastAnnounced=" + _lastAnnouncedMultiple)
 
     if (currentMultiple <= 0)
         _lastAnnouncedMultiple = 0
@@ -133,11 +147,12 @@ Function HandleReminderInterval(float elapsedSeconds, int thresholdMinutes)
     endif
 EndFunction
 
-Function HandleCombatReleaseReminder(float elapsedSeconds, int thresholdMinutes)
+Function HandleSuppressionReleaseReminder(float elapsedSeconds, int thresholdMinutes)
     int thresholdSeconds = thresholdMinutes * 60
     int currentMultiple = Math.Floor(elapsedSeconds / thresholdSeconds)
 
     if (currentMultiple <= _lastAnnouncedMultiple)
+        LogDebug("Suppression release: no overdue interval")
         return
     endif
 
@@ -148,6 +163,8 @@ Function HandleCombatReleaseReminder(float elapsedSeconds, int thresholdMinutes)
     endif
 
     if (nextReminderSeconds <= skipWindowSeconds)
+        LogDebug("Suppression release: close to next boundary; waiting for normal interval reminder")
+        _lastAnnouncedMultiple = currentMultiple
         return
     endif
 
@@ -160,6 +177,17 @@ Function HandleCombatReleaseReminder(float elapsedSeconds, int thresholdMinutes)
     _lastAnnouncedMultiple = currentMultiple
 EndFunction
 
+bool Function ShouldSuppressReminder()
+    ; Evaluate both so dialogue state remains accurate when combat overlaps dialogue.
+    bool suppressForCombat = ShouldSuppressForCombat()
+    bool suppressForDialogue = ShouldSuppressForDialogue()
+    if (suppressForCombat || suppressForDialogue)
+        return true
+    endif
+
+    return false
+EndFunction
+
 bool Function ShouldSuppressForCombat()
     if (PauseInCombat)
         if (PlayerRef == None)
@@ -167,9 +195,38 @@ bool Function ShouldSuppressForCombat()
         endif
 
         if (PlayerRef != None && PlayerRef.IsInCombat())
+            LogDebug("Suppression reason: combat")
             return true
         endif
     endif
+
+    return false
+EndFunction
+
+bool Function ShouldSuppressForDialogue()
+    if (!SuppressDuringDialogue)
+        _dialogueSuppressedActive = false
+        _dialogueClearPolls = 0
+        return false
+    endif
+
+    if (SRSSE_Native.IsDialogueMenuOpen())
+        _dialogueSuppressedActive = true
+        _dialogueClearPolls = 0
+        LogDebug("Suppression reason: Dialogue Menu is open")
+        return true
+    endif
+
+    ; Dialogue Menu can briefly close between response states. Require it to
+    ; remain closed for a full poll before releasing a pending reminder.
+    if (_dialogueSuppressedActive && _dialogueClearPolls < 1)
+        _dialogueClearPolls += 1
+        LogDebug("Suppression reason: waiting for Dialogue Menu close debounce")
+        return true
+    endif
+
+    _dialogueSuppressedActive = false
+    _dialogueClearPolls = 0
 
     return false
 EndFunction
@@ -181,6 +238,7 @@ Function ShowReminder(int elapsedMinutes)
     endif
 
     string msg = "It has been " + elapsedMinutes + " " + unit + " since your last save."
+    LogDebug("Showing reminder: " + msg + " style=" + MessageStyle)
     if (MessageStyle == 1)
         Debug.MessageBox(msg)
     else
@@ -191,7 +249,9 @@ EndFunction
 Function ResetReminderState()
     _lastAnnouncedMultiple = 0
     _lastObservedElapsedSeconds = -1.0
-    _combatSuppressedActive = false
+    _reminderSuppressedActive = false
+    _dialogueSuppressedActive = false
+    _dialogueClearPolls = 0
 EndFunction
 
 Function ApplySettingsFromStore(bool resetReminderState)
@@ -200,6 +260,8 @@ Function ApplySettingsFromStore(bool resetReminderState)
         ThresholdMinutes = SnapReminderInterval(MCM.GetModSettingInt(_settingsModName, "iThresholdMinutes:General"))
         PauseInMenus = MCM.GetModSettingBool(_settingsModName, "bPauseInMenus:Behavior")
         PauseInCombat = MCM.GetModSettingBool(_settingsModName, "bSuppressDuringCombat:Behavior")
+        SuppressDuringDialogue = MCM.GetModSettingBool(_settingsModName, "bSuppressDuringDialogue:Behavior")
+        DebugLogging = MCM.GetModSettingBool(_settingsModName, "bDebugLogging:Diagnostics")
 
         if (MCM.GetModSettingBool(_settingsModName, "bUsePopupDialog:Display"))
             MessageStyle = 1
@@ -212,6 +274,12 @@ Function ApplySettingsFromStore(bool resetReminderState)
 
     if (resetReminderState)
         ResetReminderState()
+    endif
+EndFunction
+
+Function LogDebug(String aMessage)
+    if (DebugLogging)
+        SRSSE_Native.WriteDebugLog(aMessage)
     endif
 EndFunction
 

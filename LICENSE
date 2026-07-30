@@ -1,10 +1,21 @@
-Copyright (c) 2026 Omni-Guides
+SaveReminderSSE Universal
+Copyright (C) 2026 Omni-Guides
 
-All rights reserved.
+SPDX-License-Identifier: GPL-3.0-or-later
 
-This source code is made available for transparency and reference purposes only.
-No permission is granted to use, copy, modify, distribute, or create derivative
-works from this code, in whole or in part, without explicit written permission
-from the copyright holder.
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
 
-To use this mod, download it from its official release page on Nexus Mods.
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <https://www.gnu.org/licenses/>.
+
+The linked CommonLibSSE-NG dependency is licensed separately under
+GPL-3.0-or-later with its documented modding and linking exceptions. Its exact
+source revision and license files are available at:
+https://github.com/alandtse/CommonLibSSE-NG/tree/274b463677936660797b6ada518258fe5e235f3a

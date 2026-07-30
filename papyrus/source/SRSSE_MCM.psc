@@ -5,18 +5,19 @@ Import MCM
 SRSSE_ReminderController Property Controller Auto
 
 String _settingsModName = "SaveReminderSSE"
-String _version = "0.1.4"
 
 int _oidEnabled = -1
 int _oidThreshold = -1
 int _oidPauseMenus = -1
 int _oidPauseCombat = -1
+int _oidSuppressDialogue = -1
 int _oidMessageStyle = -1
 int _oidTimeSinceLastSave = -1
 int _oidResetDefaults = -1
+int _oidDebugLogging = -1
 
 int Function GetVersion()
-    return 3
+    return 5
 EndFunction
 
 Event OnConfigInit()
@@ -32,11 +33,13 @@ EndEvent
 Event OnVersionUpdate(int aVersion)
     Parent.OnVersionUpdate(aVersion)
     LoadSettings()
+    Controller.StartPolling()
 EndEvent
 
 Event OnGameReload()
     Parent.OnGameReload()
     LoadSettings()
+    Controller.StartPolling()
 EndEvent
 
 Event OnPageReset(String aPage)
@@ -59,6 +62,7 @@ Event OnPageReset(String aPage)
         AddHeaderOption("Reminder Behavior")
         _oidPauseMenus = AddToggleOption("Pause in Menus", Controller.PauseInMenus)
         _oidPauseCombat = AddToggleOption("Suppress During Combat", Controller.PauseInCombat)
+        _oidSuppressDialogue = AddToggleOption("Suppress During Dialogue", Controller.SuppressDuringDialogue)
 
         AddHeaderOption("Reminder Display")
         _oidMessageStyle = AddToggleOption("Use Pop-up Dialog", Controller.MessageStyle == 1)
@@ -66,9 +70,13 @@ Event OnPageReset(String aPage)
     endif
 
     if (aPage == "Maintenance")
+        AddHeaderOption("Diagnostics")
+        _oidDebugLogging = AddToggleOption("Enable Debug Logging", Controller.DebugLogging)
         AddHeaderOption("Settings")
         _oidResetDefaults = AddTextOption("Reset To Defaults", "")
-        AddTextOption("Version", _version, OPTION_FLAG_DISABLED)
+        ; Keep this as a literal. Ordinary script variables are persisted in saves,
+        ; so an upgraded save would otherwise continue displaying its old version.
+        AddTextOption("Version", "0.2.2", OPTION_FLAG_DISABLED)
     endif
 EndEvent
 
@@ -98,6 +106,11 @@ Event OnOptionHighlight(int aOption)
         return
     endif
 
+    if (aOption == _oidSuppressDialogue)
+        SetInfoText("Do not show reminders during conversations. The timer keeps running and a reminder can appear after dialogue ends if you are overdue.")
+        return
+    endif
+
     if (aOption == _oidMessageStyle)
         SetInfoText("Turn this on to use a pop-up dialog that must be dismissed. Turn it off to use a lighter top-left notification.")
         return
@@ -107,9 +120,23 @@ Event OnOptionHighlight(int aOption)
         SetInfoText("Restore the shipped defaults from this mod's MCM Helper settings store.")
         return
     endif
+
+    if (aOption == _oidDebugLogging)
+        SetInfoText("Write detailed polling, suppression, and reminder decisions to the SaveReminderSSE SKSE log. Leave off during normal play.")
+        return
+    endif
 EndEvent
 
 Event OnOptionSelect(int aOption)
+    if (aOption == _oidDebugLogging)
+        bool newDebugLogging = !Controller.DebugLogging
+        MCM.SetModSettingBool(_settingsModName, "bDebugLogging:Diagnostics", newDebugLogging)
+        LoadSettings(false)
+        SetToggleOptionValue(aOption, newDebugLogging)
+        Controller.LogDebug("Debug logging enabled from MCM")
+        return
+    endif
+
     if (aOption == _oidEnabled)
         bool newEnabled = !Controller.ModEnabled
         MCM.SetModSettingBool(_settingsModName, "bModEnabled:General", newEnabled)
@@ -132,6 +159,14 @@ Event OnOptionSelect(int aOption)
         MCM.SetModSettingBool(_settingsModName, "bSuppressDuringCombat:Behavior", newPauseCombat)
         LoadSettings(false)
         SetToggleOptionValue(aOption, newPauseCombat)
+        return
+    endif
+
+    if (aOption == _oidSuppressDialogue)
+        bool newSuppressDialogue = !Controller.SuppressDuringDialogue
+        MCM.SetModSettingBool(_settingsModName, "bSuppressDuringDialogue:Behavior", newSuppressDialogue)
+        LoadSettings(false)
+        SetToggleOptionValue(aOption, newSuppressDialogue)
         return
     endif
 
@@ -175,7 +210,9 @@ Function Default()
     MCM.SetModSettingInt(_settingsModName, "iThresholdMinutes:General", 15)
     MCM.SetModSettingBool(_settingsModName, "bPauseInMenus:Behavior", true)
     MCM.SetModSettingBool(_settingsModName, "bSuppressDuringCombat:Behavior", true)
+    MCM.SetModSettingBool(_settingsModName, "bSuppressDuringDialogue:Behavior", true)
     MCM.SetModSettingBool(_settingsModName, "bUsePopupDialog:Display", false)
+    MCM.SetModSettingBool(_settingsModName, "bDebugLogging:Diagnostics", false)
     LoadSettings(true)
 EndFunction
 
