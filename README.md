@@ -1,4 +1,4 @@
-# SaveReminderSSE Universal (Skyrim SE 1.5.97 / AE 1.6.x)
+# SaveReminderSSE (Skyrim SE 1.5.97 / AE 1.6.x)
 
 A Skyrim SE mod that reminds the player to save after a set time since their last load or save.
 

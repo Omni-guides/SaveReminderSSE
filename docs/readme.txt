@@ -1,7 +1,7 @@
 Save Reminder SSE
 Skyrim SE 1.5.97 / AE 1.6.x
 
-Version 0.2.2 Universal
+Version 0.2.2
 
 The native plugin uses alandtse CommonLibSSE-NG 5.4.2. Skyrim VR is not
 supported by this release.
