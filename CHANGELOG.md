@@ -1,14 +1,10 @@
 # Changelog
 
-## [Unreleased]
-
-## [0.2.2] - 2026-07-30
-- Added a universal DLL for Skyrim SE 1.5.97 and AE 1.6.x. Skyrim VR remains unsupported.
+## [0.2.2] - 2026-07-31
+- Added a universal DLL for Skyrim SE 1.5.97 and AE 1.6.x.
 - Updated to CommonLibSSE-NG 5.4.2, pinned to commit `274b463677936660797b6ada518258fe5e235f3a`.
 - Reworked menu-pause tracking to use the engine's pause state, preventing mismatched menu events from leaving the timer stuck.
-- Added an enabled-by-default option to suppress reminders during NPC dialogue.
-- Fixed dialogue suppression by checking the engine's actual Dialogue Menu state instead of relying on the player's dialogue target.
-- Added a short dialogue-close debounce so transient menu closures between conversation states cannot release a reminder.
+- Added an option to suppress reminders during NPC dialogue (enabled by default).
 - Fixed suppression release near an interval boundary so it cannot produce two reminders only seconds apart.
 - Hardened reminder polling so a failed update cannot permanently stop future reminders.
 - Added optional detailed diagnostic logging to the MCM Maintenance page.

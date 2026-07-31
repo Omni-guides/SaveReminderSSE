@@ -26,12 +26,12 @@ Run `tools/setup.ps1` once after cloning, then see `docs/build.md`.
 The native plugin uses CommonLibSSE-NG 5.4.2 pinned to commit `274b463677936660797b6ada518258fe5e235f3a`.
 
 ## Structure
-- `cpp/` — native SKSE plugin
-- `papyrus/` — Papyrus scripts and compiler support
-- `plugin/` — ESP
-- `mcm/` — MCM Helper settings files
-- `tools/` — build and release scripts
-- `docs/` — build and CK setup notes
+- `cpp/`: native SKSE plugin
+- `papyrus/`: Papyrus scripts and compiler support
+- `plugin/`: ESP
+- `mcm/`: MCM Helper settings files
+- `tools/`: build and release scripts
+- `docs/`: build and CK setup notes
 
 ## Modlist authors
 Copy `mcm/SaveReminderSSE_defaults.ini` to `MCM/Settings/SaveReminderSSE.ini` in your own settings mod to ship custom defaults.
