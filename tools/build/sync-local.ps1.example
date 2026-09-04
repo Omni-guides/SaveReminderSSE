@@ -18,6 +18,8 @@ $pexDir = Join-Path $projectRoot "papyrus\compiled"
 $dllPath = Join-Path $projectRoot ("cpp\build\" + $Configuration + "\SaveReminderSSE.dll")
 $mcmSettingsSource = Join-Path $projectRoot "mcm\settings.ini"
 $mcmDefaultsSource = Join-Path $projectRoot "mcm\SaveReminderSSE_defaults.ini"
+$translationSourceDir = Join-Path $projectRoot "interface\translations"
+$translationValidationScript = Join-Path $projectRoot "tools\validate-translations.ps1"
 
 if ($ModPath -eq "C:\path\to\your\mod\folder" -or -not (Test-Path $ModPath)) {
     throw "Set ModPath to your local test mod folder. Current value: $ModPath"
@@ -26,15 +28,18 @@ if ($ModPath -eq "C:\path\to\your\mod\folder" -or -not (Test-Path $ModPath)) {
 Write-Host "Step 1/2: Building..."
 & $buildNativeScript -Configuration $Configuration
 & $buildPapyrusScript
+& $translationValidationScript
 
 Write-Host "Step 2/2: Syncing to $ModPath..."
 $scriptDestDir = Join-Path $ModPath "Scripts"
 $dllDestDir = Join-Path $ModPath "SKSE\Plugins"
 $mcmDestDir = Join-Path $ModPath "MCM\Config\SaveReminderSSE"
+$translationDestDir = Join-Path $ModPath "Interface\Translations"
 
 New-Item -ItemType Directory -Path $scriptDestDir -Force | Out-Null
 New-Item -ItemType Directory -Path $dllDestDir -Force | Out-Null
 New-Item -ItemType Directory -Path $mcmDestDir -Force | Out-Null
+New-Item -ItemType Directory -Path $translationDestDir -Force | Out-Null
 
 Copy-Item -Path $espPath -Destination (Join-Path $ModPath "SaveReminderSSE.esp") -Force
 Copy-Item -Path $dllPath -Destination (Join-Path $dllDestDir "SaveReminderSSE.dll") -Force
@@ -43,5 +48,6 @@ Copy-Item -Path (Join-Path $pexDir "SRSSE_ReminderController.pex") -Destination 
 Copy-Item -Path (Join-Path $pexDir "SRSSE_MCM.pex") -Destination (Join-Path $scriptDestDir "SRSSE_MCM.pex") -Force
 Copy-Item -Path $mcmSettingsSource -Destination (Join-Path $mcmDestDir "settings.ini") -Force
 Copy-Item -Path $mcmDefaultsSource -Destination (Join-Path $mcmDestDir "SaveReminderSSE_defaults.ini") -Force
+Copy-Item -Path (Join-Path $translationSourceDir "SaveReminderSSE_*.txt") -Destination $translationDestDir -Force
 
 Write-Host "Sync complete: $ModPath"

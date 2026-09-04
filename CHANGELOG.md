@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+## [0.2.3] - 2026-09-04
+- Added Skyrim 1.7.104 support while retaining the same DLL for Skyrim SE 1.5.97 and AE 1.6.x.
+- Updated to CommonLibSSE-NG 6.7.1, pinned to commit `70c1acd5261210982bd52f6d4468a082fe04d798`.
+- Added automatic reminder-message translation for all nine languages supported by Skyrim SE on PC.
+- Added an optional custom reminder message with an optional `{minutes}` placeholder.
+- Added MCM actions to preview the current reminder and restore the translated default without changing other settings.
+
 ## [0.2.2] - 2026-07-31
 - Added a universal DLL for Skyrim SE 1.5.97 and AE 1.6.x.
 - Updated to CommonLibSSE-NG 5.4.2, pinned to commit `274b463677936660797b6ada518258fe5e235f3a`.

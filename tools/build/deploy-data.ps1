@@ -42,6 +42,10 @@ $dllSource = Join-Path $projectRoot ("cpp\build\" + $Configuration + "\SaveRemin
 $pexSourceDir = Join-Path $projectRoot "papyrus\compiled"
 $mcmSettingsSource = Join-Path $projectRoot "mcm\settings.ini"
 $mcmDefaultsExampleSource = Join-Path $projectRoot "mcm\SaveReminderSSE_defaults.ini"
+$translationSourceDir = Join-Path $projectRoot "interface\translations"
+$translationValidationScript = Join-Path $projectRoot "tools\validate-translations.ps1"
+
+& $translationValidationScript
 
 if (-not (Test-Path $dllSource)) {
     throw "Native DLL not found: $dllSource"
@@ -62,10 +66,12 @@ if (-not (Test-Path $mcmDefaultsExampleSource)) {
 $dllDestDir = Join-Path $GameDataPath "SKSE\Plugins"
 $scriptDestDir = Join-Path $GameDataPath "Scripts"
 $mcmDestDir = Join-Path $GameDataPath "MCM\Config\SaveReminderSSE"
+$translationDestDir = Join-Path $GameDataPath "Interface\Translations"
 
 New-Item -ItemType Directory -Path $dllDestDir -Force | Out-Null
 New-Item -ItemType Directory -Path $scriptDestDir -Force | Out-Null
 New-Item -ItemType Directory -Path $mcmDestDir -Force | Out-Null
+New-Item -ItemType Directory -Path $translationDestDir -Force | Out-Null
 
 Copy-Item -Path $dllSource -Destination (Join-Path $dllDestDir "SaveReminderSSE.dll") -Force
 
@@ -85,6 +91,7 @@ foreach ($pex in $pexFiles) {
 
 Copy-Item -Path $mcmSettingsSource -Destination (Join-Path $mcmDestDir "settings.ini") -Force
 Copy-Item -Path $mcmDefaultsExampleSource -Destination (Join-Path $mcmDestDir "SaveReminderSSE_defaults.ini") -Force
+Copy-Item -Path (Join-Path $translationSourceDir "SaveReminderSSE_*.txt") -Destination $translationDestDir -Force
 
 Write-Host "Deployment complete."
 Write-Host "DLL: " (Join-Path $dllDestDir "SaveReminderSSE.dll")

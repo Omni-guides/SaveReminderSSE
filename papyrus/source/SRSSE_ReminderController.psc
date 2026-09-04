@@ -8,6 +8,7 @@ bool Property PauseInMenus = true Auto
 bool Property PauseInCombat = true Auto
 bool Property SuppressDuringDialogue = true Auto
 bool Property DebugLogging = false Auto
+String Property CustomReminderMessage = "" Auto
 
 ; 0 = notification, 1 = message box
 int Property MessageStyle = 0 Auto
@@ -232,18 +233,19 @@ bool Function ShouldSuppressForDialogue()
 EndFunction
 
 Function ShowReminder(int elapsedMinutes)
-    string unit = "minutes"
-    if (elapsedMinutes == 1)
-        unit = "minute"
-    endif
-
-    string msg = "It has been " + elapsedMinutes + " " + unit + " since your last save."
+    string msg = SRSSE_Native.FormatReminderMessage(CustomReminderMessage, elapsedMinutes)
     LogDebug("Showing reminder: " + msg + " style=" + MessageStyle)
     if (MessageStyle == 1)
         Debug.MessageBox(msg)
     else
         Debug.Notification(msg)
     endif
+EndFunction
+
+Function PreviewReminder(int elapsedMinutes)
+    string msg = SRSSE_Native.FormatReminderMessage(CustomReminderMessage, elapsedMinutes)
+    LogDebug("Previewing reminder as dialog: " + msg)
+    Debug.MessageBox(msg)
 EndFunction
 
 Function ResetReminderState()
@@ -262,6 +264,7 @@ Function ApplySettingsFromStore(bool resetReminderState)
         PauseInCombat = MCM.GetModSettingBool(_settingsModName, "bSuppressDuringCombat:Behavior")
         SuppressDuringDialogue = MCM.GetModSettingBool(_settingsModName, "bSuppressDuringDialogue:Behavior")
         DebugLogging = MCM.GetModSettingBool(_settingsModName, "bDebugLogging:Diagnostics")
+        CustomReminderMessage = MCM.GetModSettingString(_settingsModName, "sCustomReminderMessage:Display")
 
         if (MCM.GetModSettingBool(_settingsModName, "bUsePopupDialog:Display"))
             MessageStyle = 1

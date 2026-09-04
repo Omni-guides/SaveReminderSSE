@@ -1,5 +1,6 @@
 #include <SKSE/Impl/PCH.h>
 #include <SKSE/SKSE.h>
+#include <SKSE/Translation.h>
 #include <RE/D/DialogueMenu.h>
 #include <RE/M/MenuOpenCloseEvent.h>
 #include <RE/N/NativeFunction.h>
@@ -124,6 +125,27 @@ namespace
         logger::info("[Debug] {}", message);
     }
 
+    std::string FormatReminderMessage(RE::StaticFunctionTag*, std::string customMessage, std::int32_t elapsedMinutes)
+    {
+        std::string message = std::move(customMessage);
+        if (message.empty()) {
+            constexpr auto key = "$SRSSE_ReminderMessage";
+            if (!SKSE::Translation::Translate(key, message) || message.empty()) {
+                message = "It has been {minutes} minutes since your last save.";
+            }
+        }
+
+        constexpr std::string_view placeholder = "{minutes}";
+        const auto minutes = std::to_string(elapsedMinutes);
+        std::size_t position = 0;
+        while ((position = message.find(placeholder, position)) != std::string::npos) {
+            message.replace(position, placeholder.size(), minutes);
+            position += minutes.size();
+        }
+
+        return message;
+    }
+
     bool RegisterPapyrus(RE::BSScript::IVirtualMachine* vm)
     {
         vm->RegisterFunction("GetSecondsSinceLastSave", "SRSSE_Native", GetSecondsSinceLastSave);
@@ -131,6 +153,7 @@ namespace
         vm->RegisterFunction("IsDialogueMenuOpen", "SRSSE_Native", IsDialogueMenuOpen);
         vm->RegisterFunction("GetMenuPausedSeconds", "SRSSE_Native", GetMenuPausedSeconds);
         vm->RegisterFunction("WriteDebugLog", "SRSSE_Native", WriteDebugLog);
+        vm->RegisterFunction("FormatReminderMessage", "SRSSE_Native", FormatReminderMessage);
         logger::info("Papyrus functions registered.");
         return true;
     }
@@ -142,6 +165,10 @@ namespace
         }
 
         switch (message->type) {
+        case SKSE::MessagingInterface::kDataLoaded:
+            SKSE::Translation::ParseTranslation("SaveReminderSSE");
+            logger::info("Reminder translations loaded.");
+            break;
         case SKSE::MessagingInterface::kPostLoadGame:
             g_seenSaveThisSession.store(true);
             g_lastSaveEpochMs.store(GetEpochMsNow());
@@ -199,7 +226,7 @@ namespace
 }
 
 SKSEPluginInfo(
-    .Version = REL::Version{ 0, 2, 2, 0 },
+    .Version = REL::Version{ 0, 2, 3, 0 },
     .Name = "SaveReminderSSE"sv,
     .Author = "Omni"sv,
     .StructCompatibility = SKSE::StructCompatibility::Independent,

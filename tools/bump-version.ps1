@@ -8,7 +8,7 @@ $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
 
 $files = @(
-    @{ Path = Join-Path $projectRoot "CHANGELOG.md";                          Pattern = '## \[Unreleased\]'; Replace = "## [Unreleased]`r`n`r`n## [$Version] - $(Get-Date -Format 'yyyy-MM-dd')" },
+    @{ Path = Join-Path $projectRoot "CHANGELOG.md";                          Pattern = '## (?:\[Unreleased\]|Unreleased)'; Replace = "## Unreleased`r`n`r`n## [$Version] - $(Get-Date -Format 'yyyy-MM-dd')" },
     @{ Path = Join-Path $projectRoot "cpp\CMakeLists.txt";                    Pattern = '(?<=project\(SaveReminderSSE VERSION )\d+\.\d+\.\d+'; Replace = $Version },
     @{ Path = Join-Path $projectRoot "cpp\src\main.cpp";                      Pattern = '(?<=REL::Version\{ )0, \d+, \d+, \d+'; Replace = ($Version -replace '\.', ', ') + ', 0' },
     @{ Path = Join-Path $projectRoot "cpp\vcpkg.json";                        Pattern = '(?<="version-string": ")\d+\.\d+\.\d+'; Replace = $Version },

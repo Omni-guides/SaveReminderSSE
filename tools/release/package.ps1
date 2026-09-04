@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "0.2.2",
+    [string]$Version = "0.2.3",
     [string]$GameDataPath,
     [string]$Configuration = "Release",
     [string]$EspSourcePath,
@@ -23,6 +23,10 @@ $licenseSource = Join-Path $projectRoot "LICENSE"
 $canonicalEspPath = Join-Path $projectRoot "plugin\\SaveReminderSSE.esp"
 $mcmSettingsSource = Join-Path $projectRoot "mcm\\settings.ini"
 $mcmDefaultsExampleSource = Join-Path $projectRoot "mcm\\SaveReminderSSE_defaults.ini"
+$translationSourceDir = Join-Path $projectRoot "interface\\translations"
+$translationValidationScript = Join-Path $projectRoot "tools\\validate-translations.ps1"
+
+& $translationValidationScript
 
 if (-not $EspSourcePath) {
     if (Test-Path $canonicalEspPath) {
@@ -71,7 +75,8 @@ if (Test-Path $sevenZipPath) {
 $paths = @(
     (Join-Path $dataRoot "SKSE\\Plugins"),
     (Join-Path $dataRoot "Scripts"),
-    (Join-Path $dataRoot "MCM\\Config\\SaveReminderSSE")
+    (Join-Path $dataRoot "MCM\\Config\\SaveReminderSSE"),
+    (Join-Path $dataRoot "Interface\\Translations")
 )
 foreach ($p in $paths) {
     New-Item -ItemType Directory -Path $p -Force | Out-Null
@@ -90,6 +95,7 @@ Copy-Item -Path (Join-Path $PexSourceDir "SRSSE_ReminderController.pex") -Destin
 Copy-Item -Path (Join-Path $PexSourceDir "SRSSE_MCM.pex") -Destination (Join-Path $dataRoot "Scripts\\SRSSE_MCM.pex") -Force
 Copy-Item -Path $mcmSettingsSource -Destination (Join-Path $dataRoot "MCM\\Config\\SaveReminderSSE\\settings.ini") -Force
 Copy-Item -Path $mcmDefaultsExampleSource -Destination (Join-Path $dataRoot "MCM\\Config\\SaveReminderSSE\\SaveReminderSSE_defaults.ini") -Force
+Copy-Item -Path (Join-Path $translationSourceDir "SaveReminderSSE_*.txt") -Destination (Join-Path $dataRoot "Interface\\Translations") -Force
 Copy-Item -Path $readmeSource -Destination (Join-Path $packageRoot "README.txt") -Force
 Copy-Item -Path $licenseSource -Destination (Join-Path $packageRoot "LICENSE.txt") -Force
 

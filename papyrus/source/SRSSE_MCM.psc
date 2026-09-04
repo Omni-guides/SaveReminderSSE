@@ -12,12 +12,14 @@ int _oidPauseMenus = -1
 int _oidPauseCombat = -1
 int _oidSuppressDialogue = -1
 int _oidMessageStyle = -1
+int _oidCustomMessage = -1
+int _oidPreviewMessage = -1
+int _oidRestoreMessage = -1
 int _oidTimeSinceLastSave = -1
-int _oidResetDefaults = -1
 int _oidDebugLogging = -1
 
 int Function GetVersion()
-    return 5
+    return 6
 EndFunction
 
 Event OnConfigInit()
@@ -66,6 +68,9 @@ Event OnPageReset(String aPage)
 
         AddHeaderOption("Reminder Display")
         _oidMessageStyle = AddToggleOption("Use Pop-up Dialog", Controller.MessageStyle == 1)
+        _oidCustomMessage = AddInputOption("Custom Reminder Message", FormatCustomMessageSetting())
+        _oidPreviewMessage = AddTextOption("Preview Reminder", "")
+        _oidRestoreMessage = AddTextOption("Restore Default Message", "")
         return
     endif
 
@@ -73,10 +78,9 @@ Event OnPageReset(String aPage)
         AddHeaderOption("Diagnostics")
         _oidDebugLogging = AddToggleOption("Enable Debug Logging", Controller.DebugLogging)
         AddHeaderOption("Settings")
-        _oidResetDefaults = AddTextOption("Reset To Defaults", "")
         ; Keep this as a literal. Ordinary script variables are persisted in saves,
         ; so an upgraded save would otherwise continue displaying its old version.
-        AddTextOption("Version", "0.2.2", OPTION_FLAG_DISABLED)
+        AddTextOption("Version", "0.2.3", OPTION_FLAG_DISABLED)
     endif
 EndEvent
 
@@ -116,8 +120,18 @@ Event OnOptionHighlight(int aOption)
         return
     endif
 
-    if (aOption == _oidResetDefaults)
-        SetInfoText("Restore the shipped defaults from this mod's MCM Helper settings store.")
+    if (aOption == _oidCustomMessage)
+        SetInfoText("Enter any reminder text. Use {minutes} where the elapsed number should appear. The placeholder is optional.")
+        return
+    endif
+
+    if (aOption == _oidPreviewMessage)
+        SetInfoText("Show the current reminder message without changing the timer.")
+        return
+    endif
+
+    if (aOption == _oidRestoreMessage)
+        SetInfoText("Clear the custom message and use the translated default for the current game language.")
         return
     endif
 
@@ -178,10 +192,30 @@ Event OnOptionSelect(int aOption)
         return
     endif
 
-    if (aOption == _oidResetDefaults)
-        Default()
-        ForcePageReset()
+    if (aOption == _oidPreviewMessage)
+        Controller.PreviewReminder(Controller.ThresholdMinutes)
         return
+    endif
+
+    if (aOption == _oidRestoreMessage)
+        MCM.SetModSettingString(_settingsModName, "sCustomReminderMessage:Display", "")
+        LoadSettings(false)
+        SetInputOptionValue(_oidCustomMessage, "Default")
+        return
+    endif
+EndEvent
+
+Event OnOptionInputOpen(int aOption)
+    if (aOption == _oidCustomMessage)
+        SetInputDialogStartText(Controller.CustomReminderMessage)
+    endif
+EndEvent
+
+Event OnOptionInputAccept(int aOption, String aInput)
+    if (aOption == _oidCustomMessage)
+        MCM.SetModSettingString(_settingsModName, "sCustomReminderMessage:Display", aInput)
+        LoadSettings(false)
+        SetInputOptionValue(aOption, FormatCustomMessageSetting())
     endif
 EndEvent
 
@@ -205,23 +239,20 @@ Event OnOptionSliderAccept(int aOption, float aValue)
     endif
 EndEvent
 
-Function Default()
-    MCM.SetModSettingBool(_settingsModName, "bModEnabled:General", true)
-    MCM.SetModSettingInt(_settingsModName, "iThresholdMinutes:General", 15)
-    MCM.SetModSettingBool(_settingsModName, "bPauseInMenus:Behavior", true)
-    MCM.SetModSettingBool(_settingsModName, "bSuppressDuringCombat:Behavior", true)
-    MCM.SetModSettingBool(_settingsModName, "bSuppressDuringDialogue:Behavior", true)
-    MCM.SetModSettingBool(_settingsModName, "bUsePopupDialog:Display", false)
-    MCM.SetModSettingBool(_settingsModName, "bDebugLogging:Diagnostics", false)
-    LoadSettings(true)
-EndFunction
-
 Function LoadSettings(bool resetReminderState = false)
     if (Controller == None)
         return
     endif
 
     Controller.ApplySettingsFromStore(resetReminderState)
+EndFunction
+
+String Function FormatCustomMessageSetting()
+    if (Controller == None || Controller.CustomReminderMessage == "")
+        return "Default"
+    endif
+
+    return Controller.CustomReminderMessage
 EndFunction
 
 String Function FormatElapsedTime()

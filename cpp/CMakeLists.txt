@@ -4,7 +4,7 @@ if(POLICY CMP0091)
     cmake_policy(SET CMP0091 NEW)
 endif()
 
-project(SaveReminderSSE VERSION 0.2.2 LANGUAGES CXX)
+project(SaveReminderSSE VERSION 0.2.3 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -31,7 +31,7 @@ set(COMMONLIB_ENABLE_IPO OFF CACHE BOOL "Build CommonLibSSE without LTCG" FORCE)
 FetchContent_Declare(
     CommonLibSSE
     GIT_REPOSITORY https://github.com/alandtse/CommonLibSSE-NG.git
-    GIT_TAG 274b463677936660797b6ada518258fe5e235f3a
+    GIT_TAG 70c1acd5261210982bd52f6d4468a082fe04d798
     GIT_SHALLOW FALSE
 )
 FetchContent_MakeAvailable(CommonLibSSE)

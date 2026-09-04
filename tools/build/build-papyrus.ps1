@@ -48,6 +48,7 @@ if (-not $GameDataPath) {
 if (-not $PapyrusCompilerPath) {
     $compilerCandidates = @(
         (Join-Path (Split-Path $GameDataPath -Parent) "Papyrus Compiler\PapyrusCompiler.exe"),
+        "D:\SteamLibrary\steamapps\common\skyrim\Papyrus Compiler\PapyrusCompiler.exe",
         "D:\SteamLibrary\steamapps\common\Skyrim Special Edition\Papyrus Compiler\PapyrusCompiler.exe",
         "C:\Program Files (x86)\Steam\steamapps\common\Skyrim Special Edition\Papyrus Compiler\PapyrusCompiler.exe",
         "C:\Program Files\Steam\steamapps\common\Skyrim Special Edition\Papyrus Compiler\PapyrusCompiler.exe"
