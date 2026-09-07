@@ -226,7 +226,7 @@ namespace
 }
 
 SKSEPluginInfo(
-    .Version = REL::Version{ 0, 2, 3, 0 },
+    .Version = REL::Version{ 0, 2, 4, 0 },
     .Name = "SaveReminderSSE"sv,
     .Author = "Omni"sv,
     .StructCompatibility = SKSE::StructCompatibility::Independent,

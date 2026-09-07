@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## [0.2.4] - 2026-09-07
+- Documented SkyUI's 30-character MCM input limit and how to configure longer custom messages through MCM Helper.
+- Added concise in-game guidance for Mod Organizer 2 and Overwrite users.
+- Displayed `Custom` instead of the complete custom message in the MCM row to prevent long text from overlapping the menu.
+
 ## [0.2.3] - 2026-09-04
 - Added Skyrim 1.7.104 support while retaining the same DLL for Skyrim SE 1.5.97 and AE 1.6.x.
 - Updated to CommonLibSSE-NG 6.7.1, pinned to commit `70c1acd5261210982bd52f6d4468a082fe04d798`.

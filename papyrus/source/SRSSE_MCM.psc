@@ -80,7 +80,7 @@ Event OnPageReset(String aPage)
         AddHeaderOption("Settings")
         ; Keep this as a literal. Ordinary script variables are persisted in saves,
         ; so an upgraded save would otherwise continue displaying its old version.
-        AddTextOption("Version", "0.2.3", OPTION_FLAG_DISABLED)
+        AddTextOption("Version", "0.2.4", OPTION_FLAG_DISABLED)
     endif
 EndEvent
 
@@ -121,7 +121,7 @@ Event OnOptionHighlight(int aOption)
     endif
 
     if (aOption == _oidCustomMessage)
-        SetInfoText("Enter any reminder text. Use {minutes} where the elapsed number should appear. The placeholder is optional.")
+        SetInfoText("SkyUI limits this field to 30 characters. For longer messages, edit sCustomReminderMessage in MCM\\Settings\\SaveReminderSSE.ini. MO2 users: edit the copy in Overwrite, or remove it if another mod supplies the file. {minutes} is optional.")
         return
     endif
 
@@ -252,7 +252,7 @@ String Function FormatCustomMessageSetting()
         return "Default"
     endif
 
-    return Controller.CustomReminderMessage
+    return "Custom"
 EndFunction
 
 String Function FormatElapsedTime()

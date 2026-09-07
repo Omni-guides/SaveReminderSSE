@@ -1,7 +1,7 @@
 Save Reminder SSE
 Skyrim SE 1.5.97 / AE 1.6.x / Steam 1.7.104
 
-Version 0.2.3
+Version 0.2.4
 
 The native plugin uses alandtse CommonLibSSE-NG 6.7.1. Skyrim VR is not
 supported by this release.
@@ -21,6 +21,19 @@ French, German, Italian, Spanish, Polish, Russian, Japanese, and Traditional
 Chinese are included. The Reminder Display section lets you enter custom text,
 preview it, or restore the translated default. Use {minutes} in custom text to
 include the elapsed number, or omit it for a static message.
+
+Longer custom messages
+SkyUI limits text entered through the MCM to 30 characters. Save Reminder SSE
+supports longer messages through MCM Helper's user settings file:
+
+MCM\Settings\SaveReminderSSE.ini
+
+Set sCustomReminderMessage under [Display], then start Skyrim. With Mod
+Organizer 2, this path is relative to the virtual Data directory. The file is
+normally created under Overwrite after an MCM setting is changed. Edit that
+copy, or move it into a dedicated settings mod. If both locations contain the
+file, the copy in Overwrite wins and must be edited or removed. Preserve its
+other settings when moving or replacing it.
 
 Requirements
 - SKSE64

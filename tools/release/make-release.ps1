@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "0.2.3",
+    [string]$Version = "0.2.4",
     [string]$Configuration = "Release",
     [string]$Triplet = "x64-windows-static",
     [switch]$Fresh,
